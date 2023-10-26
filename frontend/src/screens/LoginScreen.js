@@ -1,0 +1,68 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Form, Button, Row, Col } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import Message from '../components/Message';
+import Loader from '../components/Loader';
+import FormContainer from '../components/FormContainer';
+import { login } from '../actions/userActions';
+
+const LoginScreen = ({ location, history }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const queryParams = new URLSearchParams(location.search);
+    const redirect = queryParams.get('redirect') ? queryParams.get('redirect') : '/';
+
+    const dispatch = useDispatch();
+    const userLogin = useSelector(state => state.userLogin);
+    const { loading, error, userInfo } = userLogin;
+
+    // Redirect if the user already logged in
+    useEffect(() => {
+        if (userInfo) {
+            history.push(redirect)
+        }
+    }, [history, userInfo, redirect]);
+
+    const emailChangeHandler = (event) => {
+        setEmail(event.target.value);
+    };
+    const passwordChangeHandler = (event) => {
+        setPassword(event.target.value);
+    };
+    const submitHandler = (event) => {
+        event.preventDefault();
+        dispatch(login(email, password));
+    };
+
+    if (loading) {
+        return <Loader />;
+    }
+
+    return (
+        <FormContainer>
+            <h1>Sign In</h1>
+            {error && <Message variant='danger'>{error}</Message>}
+            <Form onSubmit={submitHandler}>
+                <Form.Group controlId='email'>
+                    <Form.Label>Email Address</Form.Label>
+                    <Form.Control type='email' placeholder='Enter email' value={email} onChange={emailChangeHandler}></Form.Control>
+                </Form.Group>
+                <Form.Group controlId='password'>
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control type='password' placeholder='Enter password' value={password} onChange={passwordChangeHandler}></Form.Control>
+                </Form.Group>
+                <Button type='submit' className='my-3' variant='primary'>Sign In</Button>
+            </Form>
+            <Row className='py-3'>
+                <Col>
+                    New Customer ? {' '}
+                    <Link to={redirect ? `/register?redirect=${redirect}` : '/register'}>Register</Link>
+                </Col>
+            </Row>
+        </FormContainer>
+    );
+};
+
+export default LoginScreen;
